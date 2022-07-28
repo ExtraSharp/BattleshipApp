@@ -1,4 +1,5 @@
 ﻿using BattleshipAppLibrary.Models;
+using System.Collections.Generic;
 using System.Data.Common;
 
 namespace BattleshipAppLibrary
@@ -39,6 +40,39 @@ namespace BattleshipAppLibrary
         {
             SquareModel square = new() { Column = column, Row = row };
             player.ShipLocations.Add(square);
+
+            square = new() { Column = column, Row = row };
+            player.ShotsTaken.Add(square);
+        }
+
+        public static void PlaceShip(PlayerModel player, string location)
+        {
+            var value = player.ShipLocations.FindIndex(item => item.ToString() == location);
+
+            player.ShipLocations[value].Status = Enums.SquareStatus.Ship;
+        }
+
+        public static bool CheckValidity(PlayerModel player, string location)
+        {
+            bool output = false;
+            
+            int index = player.ShipLocations.FindIndex(f => f.Coordinates == location);
+
+            if (index >= 0)
+            {
+                if (player.ShipLocations[index].Status == Enums.SquareStatus.Empty)
+                {
+                    return true;
+                }
+                else
+                {
+                    throw new Exception("You have already placed a ship here. Try another location.");                    
+                }
+            }
+            else
+            {
+                throw new Exception("Not a valid location. Please try again.");
+            }
         }
 
         //public static bool CheckIfHit(Square square)

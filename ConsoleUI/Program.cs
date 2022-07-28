@@ -12,17 +12,14 @@
         static void Main(string[] args)
         {
             PlayerModel player = CreateNewPlayer();
+            DisplayShotGrid(player);
             PlayerModel player2 = CreateNewPlayer();
 
+            DisplayShotGrid(player);
+            
             PrintAllShips(player);
             
-            //for (int i = 0; i < 2; i++)
-            //{
-            //    GridModel grid = InitialiseGrid();
-            //    grids.Add(grid);
-            //}
-            //PlaceShips();
-            //PrintAllShips();
+            
 
             //activePlayer = 0;
 
@@ -44,89 +41,61 @@
             return output;
         }
 
-        private static void GetShipLocations(PlayerModel player)
+        private static void DisplayShotGrid(PlayerModel player)
         {
-            Console.WriteLine("Please enter your ship locations");
-            
             for (int i = 0; i < 5; i++)
             {
-                GetIndividualShipLocation(player);
+                for (int j = 0; j < 5; j++)
+                {
+                    if (player.ShotsTaken[5 * i + j].Status == Enums.SquareStatus.Empty)
+                    {
+                        Console.Write("O");
+                    }
+                    else if (player.ShotsTaken[5 * i + j].Status == Enums.SquareStatus.Hit)
+                    {
+                        Console.WriteLine("X");
+                    }             
+                    
+                }
+                Console.WriteLine();
             }            
         }
 
-        private static void GetIndividualShipLocation(PlayerModel player)
+        private static void GetShipLocations(PlayerModel player)
+        {
+            Console.WriteLine("Please place your ships on the map");
+
+            string location = "";
+            
+            for (int i = 0; i < 5; i++)
+            {
+                location = GetIndividualShipLocation(player, i);
+                GameLogic.PlaceShip(player, location);
+            }            
+        }
+
+        private static string GetIndividualShipLocation(PlayerModel player, int i)
         {
             bool isValid = false;
-            string column = "";
-            int row = 0;
-            
+            string input = "";
+
             do
             {
-                Console.Write("Column: ");
-                column = Console.ReadLine();
+                Console.Write($"Please enter a location for ship #{ i + 1 } (A1 - E5): ");
+                input = Console.ReadLine();
 
                 try
                 {
-                    isValid = CheckIfValidColumn(column);
+                    isValid = GameLogic.CheckValidity(player, input);                    
                 }
-                catch (Exception ex)
+                catch (Exception ex)                
                 {
                     Console.WriteLine(ex.Message);
-                }           
+                }
+
             } while (isValid == false);
 
-            isValid = false;
-            
-            do
-            {
-                Console.Write("Row: ");
-                row = int.Parse(Console.ReadLine());
-
-                try
-                {
-                    isValid = CheckIfValidRow(row);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            } while (isValid == false);           
-                      
-            var value = player.ShipLocations.FindIndex(item => item.ToString() == $"{ column.ToUpper() }{ row }");
-
-            player.ShipLocations[value].Status = Enums.SquareStatus.Ship;
-        }
-
-        private static bool CheckIfValidRow(int row)
-        {
-            bool output = false;
-
-            if (row == 1 || row == 2 || row == 3 || row == 4 || row == 5)
-            {
-                output = true;
-            }
-            else
-            {
-                throw new Exception("Invalid row. Please enter a number from 1 to 5.");
-            }
-
-            return output;
-        }
-
-        private static bool CheckIfValidColumn(string column)
-        {
-            bool output = false;
-            
-            if (column == "A" || column == "B" || column == "C" || column == "D" || column == "E")
-            {
-                output = true;
-            }
-            else
-            {
-                throw new Exception("Invalid column. Please enter a letter from A to E");
-            }
-
-            return output;
+            return input;
         }
 
         public static string GetPlayerName()
@@ -146,15 +115,6 @@
             }
         }
 
-        //static void MarkShip()
-        //{
-        //    Console.Write("Column: ");
-        //    string column = Console.ReadLine();
-        //    Console.Write("Row: ");
-        //    string row = Console.ReadLine();
-        //    SquareModel output = new() { Coordinates = new() { Column = (Enums.Column)System.Enum.Parse(typeof(Enums.Column), column), Row = int.Parse(row) } };
-        //    CheckIfHit(output.Coordinates);
-        //}
 
         //static void CheckIfHit(Square square)
         //{
