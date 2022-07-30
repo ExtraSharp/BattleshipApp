@@ -2,20 +2,40 @@
 {
     internal class Program
     {
-        static List<GridModel> grids = new();
-        static int activePlayer = 0;
-
-        static List<int> scores = new() { 0, 0 };
-        
-
+        static int player1score = 0;
+        static int player2score = 0;
 
         static void Main(string[] args)
         {
+            DisplayWelcomeMessage();
+            
             PlayerModel player = CreateNewPlayer();
-            DisplayShotGrid(player);
             PlayerModel player2 = CreateNewPlayer();
 
-            DisplayShotGrid(player);
+            // Mirror Grids
+            player.ShotsTaken = player2.ShipLocations;
+            player2.ShotsTaken = player.ShipLocations;
+
+            
+            DisplayShotGrid(player2);
+
+            string playerInput = "";
+
+            do
+            {
+                playerInput = GetShotLocation(player);
+                Console.Clear();
+                if (GameLogic.PlaceShot(player, playerInput) == true)
+                {
+                    Console.WriteLine("That was a hit!");
+                    player1score += 1;
+                }
+                else
+                {
+                    Console.WriteLine("Miss! Better luck next time.");
+                }
+                DisplayShotGrid(player);
+            } while (player1score <= 4);
             
             PrintAllShips(player);
             
@@ -24,6 +44,13 @@
             //activePlayer = 0;
 
             //MarkShip();
+        }
+
+        private static void DisplayWelcomeMessage()
+        {
+            Console.WriteLine("============================================");
+            Console.WriteLine("==========Welcome to Battleships!===========");
+            Console.WriteLine("============================================");
         }
 
         private static PlayerModel CreateNewPlayer()
@@ -43,19 +70,31 @@
 
         private static void DisplayShotGrid(PlayerModel player)
         {
+            Console.WriteLine("Your shot grid (O = miss, X = hit)");
+            Console.WriteLine();
+            Console.WriteLine("--A-B-C-D-E");
             for (int i = 0; i < 5; i++)
             {
+                Console.Write($"{i + 1}-");
+                
                 for (int j = 0; j < 5; j++)
                 {
-                    if (player.ShotsTaken[5 * i + j].Status == Enums.SquareStatus.Empty)
+                    if (player.ShotsTaken[5 * i + j].Status == Enums.SquareStatus.Miss)
                     {
                         Console.Write("O");
                     }
                     else if (player.ShotsTaken[5 * i + j].Status == Enums.SquareStatus.Hit)
                     {
-                        Console.WriteLine("X");
-                    }             
-                    
+                        Console.Write("X");
+                    }
+                    else
+                    {
+                        Console.Write("?");
+                    }
+                    if (j < 4)
+                    {
+                        Console.Write("-");
+                    }                                
                 }
                 Console.WriteLine();
             }            
@@ -63,7 +102,9 @@
 
         private static void GetShipLocations(PlayerModel player)
         {
+            Console.WriteLine();
             Console.WriteLine("Please place your ships on the map");
+            Console.WriteLine();
 
             string location = "";
             
@@ -72,6 +113,30 @@
                 location = GetIndividualShipLocation(player, i);
                 GameLogic.PlaceShip(player, location);
             }            
+        }
+
+        private static string GetShotLocation(PlayerModel player)
+        {
+            string input = "";
+            bool isValid = false;
+
+            do
+            {
+                Console.WriteLine($" {player.Name}, Please enter a location for your shot");
+                input = Console.ReadLine();
+
+                try
+                {
+                    isValid = GameLogic.CheckValidity(player, input, "shot");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+            } while (isValid == false);
+
+            return input;
         }
 
         private static string GetIndividualShipLocation(PlayerModel player, int i)
@@ -86,7 +151,7 @@
 
                 try
                 {
-                    isValid = GameLogic.CheckValidity(player, input);                    
+                    isValid = GameLogic.CheckValidity(player, input, "ship");                    
                 }
                 catch (Exception ex)                
                 {
@@ -100,7 +165,8 @@
 
         public static string GetPlayerName()
         {
-            Console.WriteLine("Please enter name for new player: ");
+            Console.WriteLine();
+            Console.Write("Please enter name for new player: ");
 
             return Console.ReadLine();         
         }
@@ -114,104 +180,5 @@
                 Console.WriteLine(s.ToString());
             }
         }
-
-
-        //static void CheckIfHit(Square square)
-        //{
-        //    if (true)
-        //    {
-        //        var value = grids[activePlayer + 1].Squares.FindIndex(item => item.Coordinates.ToString() == $"{square.Column}{square.Row}");
-
-        //        if (grids[activePlayer + 1].Squares[value].HasShip == true)
-        //        {
-        //            Console.WriteLine("You have a hit!");
-        //            Console.ReadLine();
-        //        }
-        //    }
-        //}
-
-        //static void CheckIfWon()
-        //{
-        //    if (scores[activePlayer] == 5)
-        //    {
-        //        Console.WriteLine($"Congrats Player { activePlayer + 1 }! You have won the match!");
-        //    }
-        //}
-
-
-
-        //static void PlaceShips()
-        //{
-        //    for (int i = 0; i < 2; i++)
-        //    {
-        //        for (int j = 0; j < 5; j++)
-        //        {
-        //            SquareModel square = EnterShipCoordinates(j);
-
-        //            try
-        //            {
-        //                PlaceIndividualShip(square.Coordinates);
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Console.WriteLine(ex.Message);
-        //                Console.ReadLine();
-        //                j -= 1;
-        //            }                    
-        //        }
-        //        activePlayer = 1;
-        //    }
-        //}
-
-        //static SquareModel EnterShipCoordinates(int shipNumber)
-        //{
-        //    Console.Clear();
-        //    Console.WriteLine($"Player { activePlayer + 1 }, Ship { shipNumber + 1 }");
-        //    Console.WriteLine();
-
-        //    Console.Write("Column: ");
-        //    string column = Console.ReadLine();
-        //    Console.Write("Row: ");
-        //    string row = Console.ReadLine();
-
-        //    SquareModel output = new() { Coordinates = new() { Column = (Enums.Column)System.Enum.Parse(typeof(Enums.Column), column), Row = int.Parse(row) } };
-
-        //    return output;
-        //}
-
-        //static GridModel InitialiseGrid()
-        //{
-        //    GridModel output = new();
-        //    List<SquareModel> squares = new();
-
-        //    for (int i = 0; i < 5; i++)
-        //    {
-        //        for (int j = 1; j < 6; j++)
-        //        {
-        //            SquareModel square = new();
-
-        //            square.Coordinates = new() { Row = j, Column = (Enums.Column)i };
-
-        //            squares.Add(square);
-        //        };
-        //    }
-        //    output.Squares = squares;
-
-        //    return output;
-        //}
-
-        //static void PlaceIndividualShip(Square square)
-        //{
-        //    var value = grids[activePlayer].Squares.FindIndex(item => item.Coordinates.ToString() == $"{square.Column}{square.Row}");
-
-        //    if (grids[activePlayer].Squares[value].HasShip == true)
-        //    {
-        //        throw new Exception("You have already placed a ship here. Try again!");
-        //    }
-        //    else
-        //    {
-        //        grids[activePlayer].Squares[value].HasShip = true;
-        //    }           
-        //}
     }
 }

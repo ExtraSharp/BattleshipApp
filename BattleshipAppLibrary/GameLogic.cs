@@ -1,6 +1,8 @@
 ﻿using BattleshipAppLibrary.Models;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Numerics;
 
 namespace BattleshipAppLibrary
 {
@@ -40,19 +42,37 @@ namespace BattleshipAppLibrary
         {
             SquareModel square = new() { Column = column, Row = row };
             player.ShipLocations.Add(square);
-
-            square = new() { Column = column, Row = row };
-            player.ShotsTaken.Add(square);
         }
 
         public static void PlaceShip(PlayerModel player, string location)
         {
             var value = player.ShipLocations.FindIndex(item => item.ToString() == location);
 
-            player.ShipLocations[value].Status = Enums.SquareStatus.Ship;
+            player.ShipLocations[value].Status = Enums.SquareStatus.Ship;  
         }
 
-        public static bool CheckValidity(PlayerModel player, string location)
+        public static bool PlaceShot(PlayerModel player, string location)
+        {
+            var index = player.ShotsTaken.FindIndex(item => item.ToString() == location);
+
+            return CheckIfHit(player, index);
+        }
+
+        private static bool CheckIfHit(PlayerModel player, int index)
+        {
+            if (player.ShotsTaken[index].Status == Enums.SquareStatus.Ship)
+            {
+                player.ShotsTaken[index].Status = Enums.SquareStatus.Hit;
+                return true;
+            }
+            else
+            {
+                player.ShotsTaken[index].Status = Enums.SquareStatus.Miss;
+                return false;
+            }
+        }
+
+        public static bool CheckValidity(PlayerModel player, string location, string type)
         {
             bool output = false;
             
@@ -60,18 +80,44 @@ namespace BattleshipAppLibrary
 
             if (index >= 0)
             {
-                if (player.ShipLocations[index].Status == Enums.SquareStatus.Empty)
+                if (type == "ship")
                 {
-                    return true;
+                    output = CheckValidatityOfPlacement(player, index);
                 }
-                else
+                else if (type == "shot")
                 {
-                    throw new Exception("You have already placed a ship here. Try another location.");                    
-                }
+                    output = CheckValidatityOfShot(player, index);
+                }             
             }
             else
             {
                 throw new Exception("Not a valid location. Please try again.");
+            }
+
+            return output;
+        }
+
+        private static bool CheckValidatityOfPlacement(PlayerModel player, int index)
+        {
+            if (player.ShipLocations[index].Status == Enums.SquareStatus.Empty)
+            {
+                return true;
+            }
+            else
+            {
+                throw new Exception("You have already placed a ship here. Try another location.");
+            }
+        }
+
+        private static bool CheckValidatityOfShot(PlayerModel player, int index)
+        {
+            if (player.ShotsTaken[index].Status == Enums.SquareStatus.Empty || player.ShotsTaken[index].Status == Enums.SquareStatus.Ship)
+            {
+                return true;
+            }
+            else
+            {
+                throw new Exception("You have already fired at this spot. Please try a different location.");
             }
         }
 

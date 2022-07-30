@@ -7,7 +7,7 @@
             Empty,
             Ship,
             Hit,
-            Missed            
+            Miss            
         }
     }
 }
